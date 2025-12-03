@@ -3,114 +3,111 @@
 {% block title %}epdtext-web{% endblock %}
 
 {% block header %}
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <p class="navbar-brand">epdtext-web</p>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://github.com/tsbarnes/epdtext-web">epdtext-web GitHub</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://github.com/tsbarnes/epdtext">epdtext GitHub</a>
-                    </li>
-                </ul>
-            </div>
+    <div class="header">
+        <h1>epdtext Control Panel</h1>
+        <div class="header-links">
+            <a href="https://github.com/tsbarnes/epdtext-web" target="_blank">epdtext-web</a>
+            <a href="https://github.com/tsbarnes/epdtext" target="_blank">epdtext</a>
         </div>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <div class="row text-center">
-        <div class="col-lg-4 col-md-3 col-sm-1"></div>
-        <div class="col-lg-4 col-md-6 col-sm-10">
-            <div class="btn-group btn-group-lg">
-                <a class="btn btn-outline-primary btn-lg" href="{{ url_for('previous_screen') }}">Previous</a>
-                <a class="btn btn-outline-primary btn-lg" href="{{ url_for('reload') }}">Reload</a>
-                <a class="btn btn-outline-primary btn-lg" href="{{ url_for('next_screen') }}">Next</a>
+    <!-- Screen Controls -->
+    <div class="card">
+        <h2 class="card-title">Screen Controls</h2>
+        <div class="controls-grid">
+            <div class="button-group">
+                <a class="btn btn-primary" href="{{ url_for('previous_screen') }}">← Previous</a>
+                <a class="btn btn-primary" href="{{ url_for('reload') }}">⟳ Reload</a>
+                <a class="btn btn-primary" href="{{ url_for('next_screen') }}">Next →</a>
             </div>
 
-            <div class="btn-group">
-                <a class="btn btn-outline-secondary" href="{{ url_for('button0') }}">KEY1</a>
-                <a class="btn btn-outline-secondary" href="{{ url_for('button1') }}">KEY2</a>
-                <a class="btn btn-outline-secondary" href="{{ url_for('button2') }}">KEY3</a>
-                <a class="btn btn-outline-secondary" href="{{ url_for('button3') }}">KEY4</a>
+            <div class="button-group-keys">
+                <a class="btn btn-secondary" href="{{ url_for('button0') }}">KEY1</a>
+                <a class="btn btn-secondary" href="{{ url_for('button1') }}">KEY2</a>
+                <a class="btn btn-secondary" href="{{ url_for('button2') }}">KEY3</a>
+                <a class="btn btn-secondary" href="{{ url_for('button3') }}">KEY4</a>
             </div>
-
-            <form class="form" action="{{ url_for('screen') }}">
-                <div class="input-group">
-                    <input type="text" class="form-control" name="screen">
-                    <button type="submit" class="btn btn-outline-info">Switch Screen</button>
-                    <div class="form-text">
-                        Enter the name of the screen module you want to use
-                    </div>
-                </div>
-            </form>
-
-            <form class="form" action="{{ url_for('add_screen') }}">
-                <div class="input-group">
-                    <input type="text" class="form-control" name="screen">
-                    <button type="submit" class="btn btn-outline-info">Add Screen</button>
-                    <div class="form-text">
-                        Enter the name of the screen module you want to load
-                    </div>
-                </div>
-            </form>
-
-            <form class="form" action="{{ url_for('remove_screen') }}">
-                <div class="input-group">
-                    <input type="text" class="form-control" name="screen">
-                    <button type="submit" class="btn btn-outline-info">Remove Screen</button>
-                    <div class="form-text">
-                        Enter the name of the screen module you want to unload
-                    </div>
-                </div>
-            </form>
         </div>
-        <div class="col-lg-4 col-md-3 col-sm-1"></div>
     </div>
-    <div class="row">
-        <div class="col-lg-4 col-md-3 col-sm-1"></div>
-        <div class="col-lg-4 col-md-6 col-sm-10">
-            <h1>System Info</h1>
-            <table>
-                <tr>
-                    <td>OS:</td>
-                    <td>{{ system.dist() }}</td>
-                </tr>
-                <tr>
-                    <td>Model:</td>
-                    <td>{{ system.model() }}</td>
-                </tr>
-                <tr>
-                    <td>Temperature:</td>
-                    <td>{{ system.temperature() }}°</td>
-                </tr>
-                <tr>
-                    <td>Network Sent:</td>
-                    <td>{{ system.network_total_sent() }}</td>
-                </tr>
-                <tr>
-                    <td>Network Received:</td>
-                    <td>{{ system.network_total_received() }}</td>
-                </tr>
-                <tr>
-                    <td>Hostname:</td>
-                    <td>{{ system.node() }}</td>
-                </tr>
-                <tr>
-                    <td>Local IPv4 Address:</td>
-                    <td>{{ system.local_ipv4_address() }}</td>
-                </tr>
-                <tr>
-                    <td>Uptime:</td>
-                    <td>{{ system.uptime() }}</td>
-                </tr>
-            </table>
+
+    <!-- Screen Management -->
+    <div class="card">
+        <h2 class="card-title">Screen Management</h2>
+
+        <form action="{{ url_for('screen') }}" method="get">
+            <div class="form-group">
+                <label class="form-label">Switch Screen</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="screen" placeholder="screen_name" required>
+                    <button type="submit" class="btn btn-primary">Switch</button>
+                </div>
+                <span class="form-text">Enter the name of the screen module to display</span>
+            </div>
+        </form>
+
+        <form action="{{ url_for('add_screen') }}" method="get">
+            <div class="form-group">
+                <label class="form-label">Add Screen</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="screen" placeholder="screen_name" required>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+                <span class="form-text">Load a new screen module</span>
+            </div>
+        </form>
+
+        <form action="{{ url_for('remove_screen') }}" method="get">
+            <div class="form-group">
+                <label class="form-label">Remove Screen</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="screen" placeholder="screen_name" required>
+                    <button type="submit" class="btn btn-primary">Remove</button>
+                </div>
+                <span class="form-text">Unload a screen module</span>
+            </div>
+        </form>
+    </div>
+
+    <!-- System Information -->
+    <div class="card">
+        <h2 class="card-title">System Information</h2>
+        <div class="system-info">
+            <div class="info-row">
+                <span class="info-label">Operating System</span>
+                <span class="info-value">{{ system.dist() }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Model</span>
+                <span class="info-value">{{ system.model() }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Temperature</span>
+                <span class="info-value {% if system.temperature() > 70 %}temp-hot{% elif system.temperature() > 60 %}temp-warm{% else %}temp-normal{% endif %}">
+                    {{ system.temperature() }}°C
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Network Sent</span>
+                <span class="info-value">{{ system.network_total_sent() }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Network Received</span>
+                <span class="info-value">{{ system.network_total_received() }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Hostname</span>
+                <span class="info-value">{{ system.node() }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">IPv4 Address</span>
+                <span class="info-value">{{ system.local_ipv4_address() }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Uptime</span>
+                <span class="info-value">{{ system.uptime() }}</span>
+            </div>
         </div>
-        <div class="col-lg-4 col-md-3 col-sm-1"></div>
     </div>
 {% endblock %}

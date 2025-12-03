@@ -1,2 +1,32 @@
 *.pyc
 /app.cfg
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Claude Code
+CLAUDE.md
+
+# macOS metadata files
+._*
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS Thumbnails
+Thumbs.db
+
+# macOS resource forks
+**/.DS_Store
+**/._*

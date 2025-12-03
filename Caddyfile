@@ -1,0 +1,32 @@
+# Caddy configuration for epdtext-web with HTTPS
+# Place this file in: /etc/caddy/Caddyfile
+
+# Replace with your actual Tailscale hostname
+# Example: pi4.tailnet-name.ts.net
+{$TAILSCALE_HOSTNAME:localhost} {
+    # Reverse proxy to epdtext-web on port 5000
+    reverse_proxy localhost:5000
+
+    # Optional: Add security headers
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        # Prevent clickjacking
+        X-Frame-Options "SAMEORIGIN"
+        # Prevent MIME sniffing
+        X-Content-Type-Options "nosniff"
+        # Enable XSS protection
+        X-XSS-Protection "1; mode=block"
+    }
+
+    # Logging
+    log {
+        output file /var/log/caddy/epdtext-web.log
+        format json
+    }
+}
+
+# Fallback for HTTP on port 5000 (local access without HTTPS)
+:5000 {
+    reverse_proxy localhost:5000
+}
