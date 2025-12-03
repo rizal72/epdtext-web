@@ -45,7 +45,7 @@ sudo apt install git python3-pip
 ### 2. Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/epdtext-web.git /home/pi/epdtext-web
+git clone https://github.com/rizal72/epdtext-web.git /home/pi/epdtext-web
 cd /home/pi/epdtext-web
 ```
 
