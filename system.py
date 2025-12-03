@@ -7,7 +7,7 @@ import humanize
 import distro
 import psutil
 
-# Set the default to wlan0
+# Preferred network interface (optional - will auto-detect if not found)
 NETWORK_INTERFACE = "wlan0"
 logger = logging.getLogger('epdtext.libs.system')
 
@@ -78,11 +78,26 @@ class System:
 
     @staticmethod
     def local_ipv4_address():
+        # First try the configured interface
         for interface_name, interface_addresses in psutil.net_if_addrs().items():
             for address in interface_addresses:
                 if interface_name == NETWORK_INTERFACE:
                     if str(address.family) == 'AddressFamily.AF_INET':
                         return address.address
+
+        # Fallback: auto-detect active interface (eth0, wlan0, etc.)
+        # Skip loopback and look for first non-localhost IPv4
+        for interface_name, interface_addresses in psutil.net_if_addrs().items():
+            # Skip loopback
+            if interface_name.startswith('lo'):
+                continue
+            for address in interface_addresses:
+                if str(address.family) == 'AddressFamily.AF_INET':
+                    ip = address.address
+                    # Skip localhost addresses
+                    if not ip.startswith('127.'):
+                        return ip
+
         return None
 
 

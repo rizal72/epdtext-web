@@ -155,7 +155,9 @@ Main configuration file (not tracked in git):
 
 ### system.py
 System information settings:
-- `NETWORK_INTERFACE`: Network interface to monitor (default: `wlan0`)
+- `NETWORK_INTERFACE`: Preferred network interface (default: `wlan0`)
+  - Automatically detects active interface (eth0, wlan0, etc.) if configured interface not found
+  - No configuration needed for most setups
 
 ## Troubleshooting
 
