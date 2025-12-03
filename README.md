@@ -1,55 +1,225 @@
 # epdtext-web
 
-epdtext-web is a Flask web app to control [epdtext](https://github.com/tsbarnes/epdtext)
+A modern, secure Flask web application to remotely control [epdtext](https://github.com/tsbarnes/epdtext) e-paper displays on Raspberry Pi.
 
-## Basics
+## Features
 
-Simply put, epdtext-web is an addon for epdtext that allows you to control the screen via a web app, accessible
-from any computer on the same network as your Raspberry Pi.
+- **Modern Web Interface**: Clean, responsive design that works on desktop and mobile
+- **Secure by Default**: HTTP Basic Authentication and input validation
+- **Production Ready**: Gunicorn WSGI server with proper service management
+- **Easy Screen Control**: Navigate, reload, and manage e-paper display screens
+- **System Monitoring**: Real-time CPU temperature, network stats, and uptime
+- **Optional HTTPS**: Simple setup with Caddy reverse proxy
 
-## Installation
+## Screenshots
 
-*Note: you'll need epdtext installed first, see
-[the epdtext README](https://github.com/tsbarnes/epdtext/blob/main/README.md)*
+The interface features a modern card-based layout with:
+- Quick navigation controls (Previous, Reload, Next)
+- Hardware button simulation (KEY1-4)
+- Screen management (Switch, Add, Remove screens)
+- Live system information display
 
-* First, make sure you have `git` and `pip3` using this command:
+## Security Features
 
-```shell
+- HTTP Basic Authentication on all routes
+- Input validation to prevent command injection
+- Runs as non-root user with proper permissions
+- Automatic message queue permission management
+- Production-grade WSGI server (Gunicorn)
+
+## Prerequisites
+
+- Raspberry Pi with [epdtext](https://github.com/tsbarnes/epdtext) installed and running
+- Python 3.7+
+- Git and pip3
+
+## Quick Installation
+
+### 1. Install Dependencies
+
+```bash
+sudo apt update
 sudo apt install git python3-pip
 ```
 
-* Second, clone the repository and change directory into it:
+### 2. Clone Repository
 
-```shell
-git clone https://github.com/tsbarnes/epdtext-web.git /home/pi/epdtext-web
+```bash
+git clone https://github.com/YOUR_USERNAME/epdtext-web.git /home/pi/epdtext-web
 cd /home/pi/epdtext-web
 ```
 
-* Third, install the Python dependencies:
+### 3. Install Python Packages
 
-```shell
+```bash
 sudo pip3 install -r requirements.txt
 ```
 
-* Fourth, configure your secret key by creating `app.cfg` with the following contents:
+### 4. Configure Authentication
 
+```bash
+# Copy the example configuration
+cp app.cfg.example app.cfg
+
+# Edit with your preferred editor
+nano app.cfg
+```
+
+Set your credentials in `app.cfg`:
 ```python
-SECRET_KEY = "<your secret key here>"
+# Generate a random secret key
+SECRET_KEY = b'your-random-secret-key-here'
+
+# Set your login credentials
+AUTH_USERNAME = 'admin'
+AUTH_PASSWORD = 'your-secure-password'
 ```
 
-* You can generate a new secret key with this command:
-
-```shell
-python -c 'import os; print(os.urandom(16))'
+Generate a secret key with:
+```bash
+python3 -c 'import os; print(os.urandom(16))'
 ```
 
-* Last, copy the service file and start the server:
+### 5. Setup Secure Permissions
 
-```shell
-sudo cp /home/pi/epdtext-web/epdtext-web.service /etc/systemd/system/
+See [SECURITY_SETUP.md](SECURITY_SETUP.md) for detailed instructions:
+
+```bash
+# Make permission script executable
+chmod +x fix-queue-permissions.sh
+
+# Install systemd drop-in for queue permissions
+sudo mkdir -p /etc/systemd/system/epdtext.service.d
+sudo cp epdtext.service.d-override.conf /etc/systemd/system/epdtext.service.d/override.conf
+
+# Install and start service
+sudo cp epdtext-web.service /etc/systemd/system/
 sudo systemctl daemon-reload
+sudo systemctl restart epdtext
 sudo systemctl enable epdtext-web
 sudo systemctl start epdtext-web
 ```
 
-* Congratulations, you're set up! Now access the web app by visiting your Pi's address in a web browser!
+### 6. Verify Installation
+
+```bash
+# Check service status
+systemctl status epdtext-web
+
+# Verify queue permissions
+ls -l /dev/mqueue/epdtext_ipc
+
+# Access the web interface
+# http://your-pi-ip:5000
+```
+
+You'll be prompted for the username and password you configured in `app.cfg`.
+
+## Optional: Enable HTTPS
+
+For secure access via Tailscale or other networks, see [HTTPS_SETUP.md](HTTPS_SETUP.md):
+
+```bash
+chmod +x install-caddy.sh
+sudo ./install-caddy.sh
+```
+
+## Usage
+
+Once installed, access the web interface at `http://your-raspberry-pi-ip:5000`
+
+### Screen Controls
+- **Previous/Next**: Navigate between loaded screens
+- **Reload**: Refresh the current screen
+- **KEY1-4**: Simulate hardware button presses
+
+### Screen Management
+- **Switch Screen**: Change to a specific screen module
+- **Add Screen**: Load a new screen module
+- **Remove Screen**: Unload a screen module
+
+### System Information
+Monitor your Raspberry Pi's health:
+- Operating system and model
+- CPU temperature (color-coded)
+- Network statistics
+- Uptime and more
+
+## Configuration
+
+### app.cfg
+Main configuration file (not tracked in git):
+- `SECRET_KEY`: Flask session secret
+- `AUTH_USERNAME`: Login username
+- `AUTH_PASSWORD`: Login password
+
+### system.py
+System information settings:
+- `NETWORK_INTERFACE`: Network interface to monitor (default: `wlan0`)
+
+## Troubleshooting
+
+### Service won't start
+```bash
+# Check logs
+journalctl -u epdtext-web -n 50
+
+# Verify permissions
+ls -l /dev/mqueue/epdtext_ipc
+```
+
+### Can't access message queue
+See [SECURITY_SETUP.md](SECURITY_SETUP.md) for permission setup instructions.
+
+### Service not starting on boot
+```bash
+sudo systemctl enable epdtext-web
+sudo systemctl enable epdtext
+```
+
+## Development
+
+### Running Locally
+```bash
+# Development mode
+python3 app.py
+
+# Production mode (local testing)
+gunicorn --bind 0.0.0.0:5000 --workers 2 app:app
+```
+
+### Project Structure
+```
+epdtext-web/
+├── app.py                          # Main Flask application
+├── system.py                       # System information module
+├── templates/                      # HTML templates
+│   ├── base.html                  # Base template
+│   └── index.html                 # Main interface
+├── static/
+│   └── style.css                  # Modern CSS styling
+├── requirements.txt               # Python dependencies
+├── epdtext-web.service           # Systemd service file
+├── fix-queue-permissions.sh      # Permission management script
+└── app.cfg.example               # Configuration template
+```
+
+## Documentation
+
+- [SECURITY_SETUP.md](SECURITY_SETUP.md) - Detailed security configuration guide
+- [HTTPS_SETUP.md](HTTPS_SETUP.md) - HTTPS setup with Caddy
+- `app.cfg.example` - Configuration file template
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project maintains the original license from [tsbarnes/epdtext-web](https://github.com/tsbarnes/epdtext-web).
+
+## Acknowledgments
+
+- Original project by [tsbarnes](https://github.com/tsbarnes)
+- Built for [epdtext](https://github.com/tsbarnes/epdtext)
+- Modern UI improvements and security enhancements
