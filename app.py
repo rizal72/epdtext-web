@@ -1,6 +1,7 @@
 import logging
 import posix_ipc
 import re
+import os
 from functools import wraps
 from flask import Flask, render_template, flash, redirect, request, Response
 
@@ -44,6 +45,60 @@ def requires_auth(f):
     return decorated
 
 
+# Get available screens from epdtext/screens directory
+def get_available_screens():
+    """
+    Read all available screen modules from ../epdtext/screens/ directory.
+    Returns a sorted list of screen names (without .py extension).
+    """
+    screens_dir = os.path.join(os.path.dirname(__file__), '..', 'epdtext', 'screens')
+    available_screens = []
+
+    try:
+        if os.path.isdir(screens_dir):
+            for filename in os.listdir(screens_dir):
+                # Only include .py files, exclude hidden files, __init__.py and private modules
+                if (filename.endswith('.py') and
+                    not filename.startswith('_') and
+                    not filename.startswith('.')):
+                    screen_name = filename[:-3]  # Remove .py extension
+                    available_screens.append(screen_name)
+    except (OSError, IOError) as e:
+        logging.warning(f"Could not read screens directory: {e}")
+
+    return sorted(available_screens)
+
+
+# Get active screens from local_settings.py
+def get_active_screens():
+    """
+    Read active screen list from ../epdtext/local_settings.py.
+    Parses the SCREENS list from the settings file.
+    Returns a list of currently active screen names.
+    """
+    settings_file = os.path.join(os.path.dirname(__file__), '..', 'epdtext', 'local_settings.py')
+    active_screens = []
+
+    try:
+        with open(settings_file, 'r') as f:
+            content = f.read()
+
+        # Find SCREENS = [...] in the file
+        # Use regex to extract the list
+        match = re.search(r'SCREENS\s*=\s*\[(.*?)\]', content, re.DOTALL)
+        if match:
+            screens_text = match.group(1)
+            # Extract quoted strings (screen names)
+            screen_names = re.findall(r'[\'"]([^\'"]+)[\'"]', screens_text)
+            active_screens = screen_names
+    except (OSError, IOError) as e:
+        logging.warning(f"Could not read local_settings.py: {e}")
+    except Exception as e:
+        logging.warning(f"Could not parse SCREENS from local_settings.py: {e}")
+
+    return active_screens
+
+
 # Input validation
 def validate_screen_name(screen_name):
     """
@@ -64,7 +119,15 @@ def validate_screen_name(screen_name):
 @app.route('/')
 @requires_auth
 def index():
-    return render_template('index.html', system=System)
+    available_screens = get_available_screens()
+    active_screens = get_active_screens()
+
+    # Filter available screens to show only those not yet active
+    inactive_screens = [screen for screen in available_screens if screen not in active_screens]
+
+    return render_template('index.html', system=System,
+                         available_screens=inactive_screens,
+                         active_screens=active_screens)
 
 
 @app.route('/next_screen')
@@ -144,8 +207,11 @@ def add_screen():
     if not screen_name:
         flash("Invalid screen name. Only alphanumeric, underscore, hyphen, and dot allowed.", "error")
         return redirect('/')
+
+    # Send IPC message to daemon (session-only, not persistent)
     mq.send("add_screen " + screen_name, timeout=10)
-    flash("Sent 'add_screen' message to epdtext")
+    flash(f"Added '{screen_name}' screen (session only - resets on reboot)", "success")
+
     return redirect('/')
 
 
@@ -157,8 +223,11 @@ def remove_screen():
     if not screen_name:
         flash("Invalid screen name. Only alphanumeric, underscore, hyphen, and dot allowed.", "error")
         return redirect('/')
+
+    # Send IPC message to daemon (session-only, not persistent)
     mq.send("remove_screen " + screen_name, timeout=10)
-    flash("Sent 'remove_screen' message to epdtext")
+    flash(f"Removed '{screen_name}' screen (restored on reboot)", "success")
+
     return redirect('/')
 
 

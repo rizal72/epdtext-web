@@ -1,6 +1,7 @@
 [Unit]
 Description=epdtext Flask app
 After=local-fs.target network.target epdtext.service
+Requires=epdtext.service
 
 [Service]
 Type=simple

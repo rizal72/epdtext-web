@@ -36,14 +36,25 @@
     <div class="card">
         <h2 class="card-title">Screen Management</h2>
 
+        <div class="info-box">
+            <strong>Note:</strong> Adding or removing screens affects only the current session.
+            Changes are temporary and will reset when epdtext restarts.
+            Dropdown lists show the initial configuration and won't update after add/remove operations.
+        </div>
+
         <form action="{{ url_for('screen') }}" method="get">
             <div class="form-group">
                 <label class="form-label">Switch Screen</label>
                 <div class="input-group">
-                    <input type="text" class="form-control" name="screen" placeholder="screen_name" required>
+                    <select class="form-control" name="screen" required>
+                        <option value="" disabled selected>Select an active screen...</option>
+                        {% for screen in active_screens %}
+                        <option value="{{ screen }}">{{ screen }}</option>
+                        {% endfor %}
+                    </select>
                     <button type="submit" class="btn btn-primary">Switch</button>
                 </div>
-                <span class="form-text">Enter the name of the screen module to display</span>
+                <span class="form-text">Switch to one of the currently active screens</span>
             </div>
         </form>
 
@@ -51,10 +62,19 @@
             <div class="form-group">
                 <label class="form-label">Add Screen</label>
                 <div class="input-group">
-                    <input type="text" class="form-control" name="screen" placeholder="screen_name" required>
-                    <button type="submit" class="btn btn-primary">Add</button>
+                    <select class="form-control" name="screen" required{% if not available_screens %} disabled{% endif %}>
+                        {% if available_screens %}
+                        <option value="" disabled selected>Select a screen to add...</option>
+                        {% for screen in available_screens %}
+                        <option value="{{ screen }}">{{ screen }}</option>
+                        {% endfor %}
+                        {% else %}
+                        <option value="" disabled selected>All screens are already active</option>
+                        {% endif %}
+                    </select>
+                    <button type="submit" class="btn btn-primary"{% if not available_screens %} disabled{% endif %}>Add</button>
                 </div>
-                <span class="form-text">Load a new screen module</span>
+                <span class="form-text">Load a screen module not yet active</span>
             </div>
         </form>
 
@@ -62,10 +82,15 @@
             <div class="form-group">
                 <label class="form-label">Remove Screen</label>
                 <div class="input-group">
-                    <input type="text" class="form-control" name="screen" placeholder="screen_name" required>
+                    <select class="form-control" name="screen" required>
+                        <option value="" disabled selected>Select an active screen...</option>
+                        {% for screen in active_screens %}
+                        <option value="{{ screen }}">{{ screen }}</option>
+                        {% endfor %}
+                    </select>
                     <button type="submit" class="btn btn-primary">Remove</button>
                 </div>
-                <span class="form-text">Unload a screen module</span>
+                <span class="form-text">Unload one of the currently active screens</span>
             </div>
         </form>
     </div>
